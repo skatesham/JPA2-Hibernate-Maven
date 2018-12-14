@@ -6,9 +6,11 @@ import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import br.sham.maven.web.financas.model.Categoria;
 import br.sham.maven.web.financas.model.Conta;
+import br.sham.maven.web.financas.model.ContaComNumeroEAgencia;
 import br.sham.maven.web.financas.model.Movimentacao;
 import br.sham.maven.web.financas.model.TipoMovimentacao;
 import br.sham.maven.web.financas.model.Usuario;
@@ -23,11 +25,92 @@ public class App {
 	public static void main(String[] args) {
 
 		System.out.println("Bem Vindo ao JPA2 com Hibernate!");
-		populaCategoria();
-		populaConta();
-		populaCliente();
-		populaMovimentacao();
 
+		// Popular e Criar Banco de Dados
+		// populaCategoria();
+		// populaConta();
+		// populaCliente();
+		// populaMovimentacao();
+
+		testeJPQL();
+
+	}
+
+	public static void testeJPQL() {
+
+		@Cleanup
+		EntityManager em = JPAUtil.getEntityManager();
+
+		em.getTransaction().begin();
+
+		Conta conta = new Conta();
+		conta.setId(2);
+
+		/*
+		 * SELECT EM UMA UNICA TABELA //String jpql =
+		 * "select m from Movimentacao m where m.conta.id = 1"; //String jpql =
+		 * "select m from Movimentacao m where m.conta = conta"; String jpql =
+		 * "select m from Movimentacao m where m.conta = :pConta" +
+		 * " and m.tipoMovimentacao = :pTipo" + " order by m.valor desc"; //String jpql
+		 * = "select m from Movimentacao m where m.conta = :pConta" +
+		 * " order by m.valor desc"; Query query = em.createQuery(jpql);
+		 * query.setParameter("pConta", conta); query.setParameter("pTipo",
+		 * TipoMovimentacao.SAIDA);
+		 */
+
+		// SELECT EM MUTIPLAS TABELAS
+		/*
+		 * Using JOIN Categoria categoria = new Categoria(); categoria.setId(1);
+		 * 
+		 * String jpql =
+		 * "select m from Movimentacao m join m.categorias c where c = :pCategoria";
+		 * 
+		 * Query query = em.createQuery(jpql); query.setParameter("pCategoria",
+		 * categoria);
+		 * 
+		 * List<Movimentacao> resultados = query.getResultList(); //resultados.forEach(r
+		 * -> r.print()); for(Movimentacao m : resultados) { m.print(); }
+		 */
+
+		/*
+		 * Data File Transfer
+		 * 
+		 * List<ContaComNumeroEAgencia> resultados = em
+		 * .createQuery("select new br.sham.maven.web.financas.model.ContaComNumeroEAgencia(c.numero, c.agencia) from Conta c"
+		 * , ContaComNumeroEAgencia.class) .getResultList();
+		 * 
+		 * // size System.out.println(resultados.size());
+		 * 
+		 * // resultados.forEach(r -> r.print()); for (ContaComNumeroEAgencia c :
+		 * resultados) { System.out.println(c); }
+		 */
+
+		// EAGER Loading ( LAZY é Padrão)
+
+		// String jpql = "select c from Conta c";
+		// String jpql = "select c from Conta c join fetch c.movimentacoes";
+		// String jpql = "select c from Conta c inner join c.movimentacoes";
+		
+		// EAGER
+		Query query = em.createQuery("select distinct c from Conta c left join fetch c.movimentacoes");
+
+		List<Conta> contas = query.getResultList();
+
+		for (Conta conta1 : contas) {
+			System.out.println("Titular: " + conta1.getNumero());
+			System.out.println("Número de movimentações ...: " + conta1.getMovimentacoes().size());
+		}
+
+		em.getTransaction().commit();
+
+		/*
+		 * TESTE Bidirecional Movimentacao movimentacao = em.find(Movimentacao.class,
+		 * 3); conta = movimentacao.getConta();
+		 * 
+		 * System.out.println(conta.getMovimentacoes().size());
+		 * 
+		 * 
+		 */
 	}
 
 	public static void metodosMysql() {
@@ -289,54 +372,55 @@ public class App {
 	}
 
 	public static void populaCliente() {
-		
+
 		EntityManager em = JPAUtil.getEntityManager();
-		
+
 		Usuario cliente1 = new Usuario();
 		Usuario cliente2 = new Usuario();
 		Usuario cliente3 = new Usuario();
 		Usuario cliente4 = new Usuario();
 		Usuario cliente5 = new Usuario();
-		
+
 		Conta conta1 = em.find(Conta.class, 1);
 		Conta conta2 = em.find(Conta.class, 2);
 		Conta conta3 = em.find(Conta.class, 3);
 		Conta conta4 = em.find(Conta.class, 4);
 		Conta conta5 = em.find(Conta.class, 5);
-		
+
 		String nome = "Sham ";
 		String endereco = "Rua Minas Gerais 52";
 		String profissao = "Desenvolvedor";
-		
+
 		cliente1.setConta(conta1);
 		cliente1.setEndereco(endereco);
-		cliente1.setNome(nome+"1");
+		cliente1.setNome(nome + "1");
 		cliente1.setProfissao(profissao);
-		
+
 		cliente2.setConta(conta2);
 		cliente2.setEndereco(endereco);
-		cliente2.setNome(nome+"2");
+		cliente2.setNome(nome + "2");
 		cliente2.setProfissao(profissao);
-		
+
 		cliente3.setConta(conta3);
 		cliente3.setEndereco(endereco);
-		cliente3.setNome(nome+"3");
+		cliente3.setNome(nome + "3");
 		cliente3.setProfissao(profissao);
-		
+
 		cliente4.setConta(conta4);
 		cliente4.setEndereco(endereco);
-		cliente4.setNome(nome +"4");
+		cliente4.setNome(nome + "4");
 		cliente4.setProfissao(profissao);
-		
+
 		cliente5.setConta(conta5);
 		cliente5.setEndereco(endereco);
-		cliente5.setNome(nome +"5");
+		cliente5.setNome(nome + "5");
 		cliente5.setProfissao(profissao);
-		
-		for(Usuario u : Arrays.asList(cliente1, cliente2, cliente3, cliente4, cliente5)) {
+
+		for (Usuario u : Arrays.asList(cliente1, cliente2, cliente3, cliente4, cliente5)) {
 			em.getTransaction().begin();
 			em.persist(u);
 			em.getTransaction().commit();
 		}
 	}
+
 }

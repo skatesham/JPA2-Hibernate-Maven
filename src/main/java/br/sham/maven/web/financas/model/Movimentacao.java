@@ -24,7 +24,7 @@ public @Data class Movimentacao {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	public Integer id;
+	private Integer id;
 	private BigDecimal valor;
 	@Enumerated(EnumType.STRING)
 	private TipoMovimentacao tipoMovimentacao;
@@ -35,5 +35,9 @@ public @Data class Movimentacao {
 	private Conta conta;
 	@ManyToMany
 	private List<Categoria> categorias;
+	
+	public void print() {
+		System.out.println(this.toString()+"\n");
+	}
 	
 }
